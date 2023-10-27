@@ -1,18 +1,51 @@
-name: Github Actions Demo
-run-name: ${{ github.actor }} is testing out Github Actions
-on: [push]
+# NOTES:
+# https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions
+
+
+name: Build and publish a Docker image
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  # pull_request:
+  #   branches:
+  #     - 'main'
 jobs:
-  Explore-GitHub-Actions:
+  build:
+    name: Build & push docker image
     runs-on: ubuntu-latest
+    env:
+      IMG_NAME: ${{ github.repository }}
     steps:
-      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v2
-      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Debug
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "This job's status is ${{ job.status }}."
+          echo "github.ref -> {{ github.ref }}"
+
+      - name: Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.IMG_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value={{sha}},enable=${{ github.ref_type != 'tag' }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        if: ${{ github.ref_type == 'tag' }}
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ecs-demo-sandbox
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
