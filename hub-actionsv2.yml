@@ -1,7 +1,3 @@
-# NOTES:
-# https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions
-# https://josephrodriguezg.medium.com/build-and-publish-docker-images-with-github-actions-78be3b3fbb9b
-
 name: Build and publish a Docker image
 
 on:
@@ -50,7 +46,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         if: github.ref == 'refs/heads/main'
         env:
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO_MAIN }} 
+          ECR_REPOSITORY: ${{ ECR_REPO_MAIN }} 
           # ecs-demo-sandbox
           IMAGE_TAG: ${{ github.sha }}
         run: |
