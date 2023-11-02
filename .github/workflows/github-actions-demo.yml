@@ -53,7 +53,7 @@ jobs:
         env:
           ECR_REPOSITORY: ${{ secrets.ECR_REPO_MAIN }} 
           # ecs-demo-sandbox
-          IMAGE_TAG: production-$TAG_IT_GOOD
+          IMAGE_TAG: production-${{ env.TAG_IT_GOOD }}
         run: |
           docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
@@ -68,8 +68,8 @@ jobs:
       - name: Build, tag, and push docker image to Docker Hub - Release (QA)
         if: github.ref == 'refs/heads/release'
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:release-$TAG_IT_GOOD .
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:release-$TAG_IT_GOOD
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:release-${{ env.TAG_IT_GOOD }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:release-${{ env.TAG_IT_GOOD }}
 
       - name: Login to Docker Hub - Integration (Dev)
         if: github.ref == 'refs/heads/integration'
@@ -81,5 +81,5 @@ jobs:
       - name: Build, tag, and push docker image to Docker Hub - Integration (Dev)
         if: github.ref == 'refs/heads/integration'
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:integration-$TAG_IT_GOOD .
-          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:integration-$TAG_IT_GOOD
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:integration-${{ env.TAG_IT_GOOD }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMG_NAME }}:integration-${{ env.TAG_IT_GOOD }}
